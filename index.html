@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ジュンピア</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --primary: #79ADAD;
+  --primary-light: #B5E0E0;
+  --primary-dark: #5A8F8F;
+  --bg: #B5E0E0;
+  --card: #FFFFFF;
+  --text: #333333;
+  --text-light: #778888;
+  --border: #D8ECEC;
+  --danger: #D46A6A;
+  --shadow: 0 2px 8px rgba(90,143,143,0.12);
+  --shadow-md: 0 6px 20px rgba(90,143,143,0.18);
+  --navh: 72px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { background: var(--bg); }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+               "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding-bottom: calc(var(--navh) + env(safe-area-inset-bottom, 0px) + 40px);
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; touch-action: manipulation; }
+input, select { font-family: inherit; font-size: 15px; color: var(--text); }
+ul, ol { list-style: none; }
+
+/* Make SVGs inside buttons never steal clicks */
+button svg, button svg *, .icon-btn svg, .icon-btn svg *,
+.stw-btn svg, .stw-btn svg *,
+.nav-item svg, .nav-item svg *,
+.p-active svg, .p-active svg *,
+.chip svg, .chip svg * { pointer-events: none; }
+
+.app { max-width: 520px; margin: 0 auto; padding: 0 16px; }
+
+.page-header { padding: 28px 20px 20px; text-align: center; }
+.page-header h1 { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: 2px; }
+.page-header .sub { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  overflow: visible;
+  position: relative;
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+.field-row { display: flex; gap: 10px; margin-bottom: 0; }
+.field-row .field { flex: 1; min-width: 0; margin-bottom: 14px; }
+.field input[type="text"],
+.field input[type="time"],
+.field input[type="date"],
+.field input[type="datetime-local"],
+.field input[type="number"],
+.field select {
+  width: 100%;
+  padding: 10px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: #F5FAFA;
+  color: var(--text);
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--primary); background: white; }
+.field input:disabled { opacity: 0.6; cursor: not-allowed; background: #F0F0F0; }
+.row { display: flex; gap: 8px; align-items: center; }
+.row > * { min-width: 0; }
+.row > input[type="text"]:first-child,
+.row .flex-name { flex: 1 1 auto; width: 1%; }
+.row > .flex-fixed { flex: 0 0 auto; }
+.row .inline-time { display: inline-flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+.row .inline-time input { width: 48px; }
+.row .inline-time .tmini-unit { font-size: 11px; color: var(--text-light); font-weight: 600; }
+
+.ico { width:18px; height:18px; display:inline-block; vertical-align:middle; fill:currentColor; flex-shrink:0; }
+.ico-lg { width:24px; height:24px; }
+.ico-xl { width:36px; height:36px; }
+.ico-btn { width:16px; height:16px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 18px; font-size: 15px; font-weight: 600; border-radius: 12px;
+  transition: all 0.15s; width: 100%; text-align: center; min-height: 48px;
+  border: none; position: relative; z-index: 5;
+  -webkit-appearance: none; appearance: none;
+  touch-action: manipulation;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--primary); color: #FFFFFF; box-shadow: 0 4px 12px rgba(90,143,143,0.3); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-light { background: var(--primary-light); color: var(--text); }
+.btn-outline { background: white; border: 1.5px solid var(--border); color: var(--text); }
+.btn-danger { background: #FBEAEA; color: var(--danger); }
+.btn-sm { padding: 8px 14px; font-size: 13px; width: auto; min-height: auto; border-radius: 8px; }
+.btn-seg { flex: 1; padding: 10px; font-size: 13px; border-radius: 10px; font-weight: 600; background: #F0F5F5; color: var(--text-light); }
+.btn-seg.active { background: var(--primary); color: white; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 8px 14px; background: #F5FAFA; border: 1.5px solid var(--border);
+  border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.15s;
+}
+.chip.active { background: var(--primary); border-color: var(--primary); color: #FFFFFF; }
+
+.timer-hero {
+  background: var(--primary); color: #FFFFFF; border-radius: 20px; padding: 28px 20px;
+  text-align: center; box-shadow: var(--shadow-md); margin-bottom: 20px; position: relative; z-index: 1;
+}
+.timer-label { font-size: 12px; font-weight: 500; opacity: 0.9; margin-bottom: 8px; letter-spacing: 1px; }
+.timer-task { font-size: 26px; font-weight: 700; margin-bottom: 20px; word-break: break-word; }
+.timer-circle-wrap { position: relative; width: 200px; height: 200px; margin: 0 auto 16px; }
+.timer-circle { width: 100%; height: 100%; transform: rotate(-90deg); }
+.timer-circle-bg { fill: none; stroke: rgba(255,255,255,0.2); stroke-width: 12; }
+.timer-circle-fg { fill:none; stroke:#FFFFFF; stroke-width:12; stroke-linecap:round; transition: stroke-dashoffset 0.3s linear; }
+.timer-time { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:44px; font-weight:800; font-variant-numeric: tabular-nums; line-height:1; letter-spacing:-2px; }
+.timer-meta { font-size: 12px; opacity: 0.85; margin-top: 8px; }
+.travel-mode .timer-circle-wrap { display: none; }
+.travel-mode .timer-task { font-size: 20px; margin-bottom: 8px; }
+.travel-mode { padding-bottom: 20px; }
+
+.stw-btn {
+  width: 100px; height: 100px; border-radius: 50%; background: white; color: var(--primary);
+  font-size: 13px; font-weight: 700; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; margin: 0 auto 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  transition: all 0.2s; border: 4px solid rgba(255,255,255,0.4); gap: 4px;
+  -webkit-appearance: none; appearance: none;
+  position: relative; z-index: 2;
+}
+.stw-btn.running { background: var(--primary-dark); color: white; border-color: rgba(255,255,255,0.5); }
+.stw-btn:active { transform: scale(0.95); }
+.stw-btn .stw-ico { width: 30px; height: 30px; display:flex; align-items:center; justify-content:center; }
+
+.timer-controls { display: flex; gap: 10px; margin-top: 8px; margin-bottom: 16px; position: relative; z-index: 2; }
+.timer-controls .btn { flex: 1; }
+
+.sched-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; margin-bottom:4px; }
+.sched-item.current { background: rgba(121,173,173,0.12); }
+.sched-item.done { opacity: 0.5; }
+.sched-item.done .sched-name { text-decoration: line-through; }
+.sched-item.travel { background: rgba(121,173,173,0.06); border: 1px dashed var(--primary-light); }
+.sched-dot { width:10px; height:10px; border-radius:50%; background:var(--border); flex-shrink:0; }
+.sched-item.current .sched-dot { background:var(--primary); animation: pulse 1.5s ease-in-out infinite; }
+.sched-item.done .sched-dot { background:var(--primary); }
+.sched-item.travel .sched-dot { background: var(--primary-light); }
+@keyframes pulse {
+  0%,100%{box-shadow:0 0 0 3px rgba(121,173,173,0.2);}
+  50%{box-shadow:0 0 0 6px rgba(121,173,173,0.1);}
+}
+.sched-time { font-size:12px; font-weight:700; color:var(--text-light); font-variant-numeric: tabular-nums; min-width:46px; }
+.sched-name { flex:1; font-weight:600; font-size:14px; }
+.sched-tag { font-size:10px; color:var(--primary); background:rgba(121,173,173,0.12); padding:2px 6px; border-radius:4px; font-weight:700; margin-left:6px; }
+.sched-dur { font-size:11px; color:var(--text-light); background:#F5FAFA; padding:3px 8px; border-radius:6px; font-weight:600; }
+.sched-actual { font-size:11px; color:var(--primary); font-weight:700; margin-left:6px; }
+
+.calc-result {
+  background: linear-gradient(135deg, var(--primary-light), #E8F8F8);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.calc-result .cr-label { font-size: 12px; color: var(--primary-dark); font-weight: 600; margin-bottom: 6px; }
+.calc-result .cr-time { font-size: 32px; font-weight: 800; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
+.calc-result .cr-sub { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+.calc-result .cr-reverse { margin-top:10px; }
+
+.end-btn-wrap { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); position: relative; z-index: 20; }
+.end-btn-wrap .btn { z-index: 20; }
+
+.task-row { display:flex; align-items:center; gap:8px; padding:10px; background:#F5FAFA; border-radius:8px; margin-bottom:6px; position:relative; z-index:1; }
+.task-row .handle { cursor:grab; user-select:none; padding:4px; color:var(--text-light); display:flex; touch-action:none; }
+.task-row .tname { flex:1; border:none; background:transparent; font-weight:600; font-size:14px; color:var(--text); min-width:0; }
+.task-row .tname:focus { outline:none; }
+.task-row .tmini { width:52px; padding:6px; border:1px solid var(--border); border-radius:6px; background:white; font-size:13px; text-align:center; -webkit-appearance:none; appearance:none; }
+.task-row .tmini-unit { font-size:11px; color:var(--text-light); font-weight:600; }
+/* Generic icon button (guarantees clickable size everywhere) */
+.icon-btn {
+  width: 36px; height: 36px; min-width: 36px; min-height: 36px;
+  border-radius: 8px; color: var(--text-light);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; flex-shrink: 0; cursor: pointer;
+  touch-action: manipulation; position: relative; z-index: 3;
+  border: none; padding: 0; -webkit-appearance: none; appearance: none;
+}
+.icon-btn:active { background: rgba(0,0,0,0.08); }
+.icon-btn.btn-del { color: var(--danger); }
+
+.task-row .icon-btn { width:36px; height:36px; }
+.task-row .icon-btn:hover { background: rgba(0,0,0,0.05); }
+.task-row .icon-btn.btn-del { color: var(--danger); }
+
+.preset-item .p-active {
+  width: 32px; height: 32px; min-width: 32px; min-height: 32px;
+  border-radius: 50%; border: 2px solid var(--border);
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; background: transparent; cursor: pointer;
+  touch-action: manipulation; position: relative; z-index: 3;
+  -webkit-appearance: none; appearance: none; padding: 0;
+}
+.preset-item.p-active-yes .p-active { background: var(--primary); border-color: var(--primary); }
+.preset-item.p-active-yes .p-active .ico { fill: white; }
+.time-group { display:flex; align-items:center; gap:1px; flex-shrink:0; }
+.time-group .tmini { width:40px; }
+.time-group .tmini-unit { margin: 0 1px; }
+.inline-time { display:inline-flex; align-items:center; gap:1px; flex-shrink:0; }
+.inline-time input { width:40px; padding:10px 4px; border:1.5px solid var(--border); border-radius:10px; background:#F5FAFA; font-size:14px; text-align:center; -webkit-appearance:none; appearance:none; box-sizing:border-box; }
+.inline-time input:focus { outline:none; border-color:var(--primary); background:white; }
+.inline-time .tmini-unit { font-size:10px; color:var(--text-light); font-weight:600; margin:0 2px 0 1px; }
+
+.travel-leg { display:flex; align-items:center; gap:4px; padding:8px 10px; background:#F5FAFA; border-radius:8px; margin-bottom:6px; }
+.travel-leg .tname { flex:1; border:none; background:transparent; font-weight:600; font-size:14px; color:var(--text); min-width:0; }
+.travel-leg .tmini { width:48px; padding:6px 4px; border:1px solid var(--border); border-radius:6px; background:white; font-size:13px; text-align:center; -webkit-appearance:none; appearance:none; }
+.travel-leg .tmini-unit { font-size:10px; color:var(--text-light); font-weight:600; margin:0 2px; }
+.travel-leg .icon-btn { width:30px; height:30px; min-width:30px; min-height:30px; }
+.travel-leg .icon-btn:hover { background: rgba(0,0,0,0.05); }
+.travel-total { font-size:12px; color:var(--text-light); text-align:right; margin-top:4px; font-weight:600; }
+
+.empty { text-align:center; padding:36px 20px; color:var(--text-light); font-size:14px; }
+.empty .empty-sym { margin-bottom:10px; display:flex; justify-content:center; opacity:0.6; }
+
+.toast {
+  position: fixed; bottom: calc(var(--navh) + 30px + env(safe-area-inset-bottom, 0px)); left:50%;
+  transform:translateX(-50%) translateY(20px); background:var(--text); color:#FFFFFF;
+  padding:12px 22px; border-radius:10px; font-size:13px; font-weight:600; box-shadow:var(--shadow-md);
+  z-index:999; opacity:0; pointer-events:none; transition:opacity 0.2s, transform 0.2s; white-space:nowrap; max-width:90vw;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+.bottom-nav {
+  position:fixed; bottom:0; left:0; right:0; height:calc(var(--navh) + env(safe-area-inset-bottom, 0px));
+  padding-bottom:env(safe-area-inset-bottom,0px); padding-top:8px; background:white; border-top:1px solid var(--border);
+  display:flex; z-index:100; max-width:520px; margin:0 auto; box-shadow:0 -2px 12px rgba(0,0,0,0.05);
+}
+.nav-item {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  color:var(--text-light); font-size:11px; font-weight:600; padding:8px 0; border:none; background:transparent;
+  touch-action: manipulation;
+}
+.nav-item.active { color: var(--primary); }
+.nav-item .nav-ico { width:24px; height:24px; display:flex; align-items:center; justify-content:center; }
+
+.setting-row { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border); gap:12px; }
+.setting-row:last-child { border-bottom:none; }
+.setting-row .s-label { font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.setting-row .s-desc { font-size:11px; color:var(--text-light); margin-top:2px; }
+.setting-row .s-control { flex-shrink:0; }
+
+.preset-item { display:flex; align-items:center; gap:10px; padding:12px; border-radius:10px; background:#F5FAFA; margin-bottom:6px; position:relative; z-index:1; }
+.preset-item.p-editing { background:rgba(121,173,173,0.15); }
+.preset-item.p-active-yes { border-left:3px solid var(--primary); }
+.preset-item .pname { flex:1; font-weight:600; font-size:14px; background:transparent; border:none; min-width:0; }
+.preset-item .pname:focus { outline:none; }
+.preset-item .pcount { font-size:11px; color:var(--text-light); background:white; padding:2px 8px; border-radius:6px; font-weight:600; }
+
+.completed-hero { text-align:center; padding:40px 20px; background:var(--primary); color:#FFFFFF; border-radius:20px; margin-bottom:16px; box-shadow:var(--shadow-md); }
+.completed-hero .big-sym { width:60px; height:60px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:50%; }
+.completed-hero .big-sym .ico { width:32px; height:32px; fill:white; }
+.completed-hero h2 { font-size:22px; font-weight:700; margin-bottom:6px; }
+.completed-hero p { font-size:13px; opacity:0.9; }
+
+.mt-8 { margin-top:8px; }
+.mb-0 { margin-bottom:0; }
+.text-sm { font-size:12px; }
+.text-mute { color:var(--text-light); }
+.fw-700 { font-weight:700; }
+.divider { height:1px; background:var(--border); margin:14px 0; }
+.hint { font-size:11px; color:var(--text-light); margin-top:4px; }
+.section-label { font-size:12px; font-weight:700; color:var(--text-light); margin:14px 0 8px; letter-spacing:0.5px; }
+
+.adhoc-task { display:flex; align-items:center; gap:4px; padding:8px 10px; background:#F5FAFA; border-radius:8px; margin-bottom:6px; }
+.adhoc-task .at-name { flex:1; border:none; background:transparent; font-weight:600; font-size:14px; min-width:0; }
+.adhoc-task .at-name:focus { outline:none; }
+.adhoc-task .at-mini { width:38px; padding:6px 2px; border:1px solid var(--border); border-radius:6px; background:white; font-size:13px; text-align:center; -webkit-appearance:none; appearance:none; }
+.adhoc-task .at-unit { font-size:10px; color:var(--text-light); font-weight:600; margin:0 1px; }
+.adhoc-task .icon-btn { width:30px; height:30px; min-width:30px; min-height:30px; color:var(--danger); }
+
+.hist-item { padding:10px 12px; background:#F5FAFA; border-radius:10px; margin-bottom:6px; font-size:13px; }
+.hist-item .h-head { display:flex; justify-content:space-between; font-weight:700; color:var(--primary-dark); margin-bottom:4px; font-size:12px; }
+.hist-item .h-sub { font-size:11px; color:var(--text-light); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="page-header">
+    <h1>ジュンピア</h1>
+    <div class="sub">朝の準備を、時間通りに</div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div id="homeSetup">
+      <div class="card">
+        <div class="card-title">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/></svg>
+          モード選択
+        </div>
+        <div class="row" style="margin-bottom:16px">
+          <button type="button" class="btn btn-seg active" id="mode2Btn" onclick="JUNPIA.setMode(2)">開始時刻から予測</button>
+          <button type="button" class="btn btn-seg" id="mode1Btn" onclick="JUNPIA.setMode(1)">到着時刻から逆算</button>
+        </div>
+        <div id="modeFields"></div>
+      </div>
+
+      <div id="homeEmptyHint" class="card" style="display:none">
+        <div class="empty">
+          <div class="empty-sym"><svg class="ico ico-xl" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+          <div style="margin-bottom:12px">タスクを追加するか、プリセットを選んでください</div>
+          <button type="button" class="btn btn-light btn-sm" onclick="JUNPIA.switchScreen('presets')">プリセット管理へ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVE SESSION -->
+    <div id="homeActive" style="display:none">
+      <div class="timer-hero" id="timerHero">
+        <div class="timer-label" id="tLabel">現在のタスク</div>
+        <div class="timer-task" id="tTask">—</div>
+        <div class="timer-circle-wrap" id="tCircleWrap">
+          <svg class="timer-circle" viewBox="0 0 200 200">
+            <circle class="timer-circle-bg" cx="100" cy="100" r="88"/>
+            <circle class="timer-circle-fg" id="tCircle" cx="100" cy="100" r="88" stroke-dasharray="553" stroke-dashoffset="553"/>
+          </svg>
+          <div class="timer-time" id="tTime">00:00</div>
+        </div>
+        <div class="timer-meta" id="tMeta">—</div>
+      </div>
+
+      <button type="button" class="stw-btn" id="stwBtn" onclick="JUNPIA.toggleTaskTimer()">
+        <span class="stw-ico" id="stwIco">
+          <svg class="ico ico-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        <span id="stwText">開始</span>
+      </button>
+
+      <div class="timer-controls">
+        <button type="button" class="btn btn-outline" id="skipBtn" onclick="JUNPIA.skipTask()">
+          <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          スキップ
+        </button>
+        <button type="button" class="btn btn-primary" id="completeBtn" onclick="JUNPIA.completeTask()">
+          <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+          完了
+        </button>
+      </div>
+
+      <div class="card" style="margin-top:16px;z-index:3">
+        <div class="card-title">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+          スケジュール
+        </div>
+        <ul id="schedList"></ul>
+        <div class="end-btn-wrap">
+          <button type="button" class="btn btn-danger" id="endBtn" onclick="JUNPIA.handleEndBtn()" style="z-index:50">
+            <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>
+            準備を終了
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPLETED -->
+    <div id="homeDone" style="display:none">
+      <div class="completed-hero">
+        <div class="big-sym"><svg class="ico" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg></div>
+        <h2>準備完了</h2>
+        <p id="doneSummary">—</p>
+      </div>
+      <div class="card">
+        <div class="card-title">結果</div>
+        <ul id="doneSchedList"></ul>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="JUNPIA.resetHome()">ホームへ戻る</button>
+    </div>
+  </div>
+
+  <!-- PRESETS -->
+  <div class="screen" id="screen-presets">
+    <div class="card">
+      <div class="card-title">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        プリセット管理
+      </div>
+      <div id="presetList"></div>
+      <div class="field mt-8 mb-0">
+        <div class="row">
+          <input type="text" id="newPresetInput" class="flex-name" placeholder="新規プリセット名">
+          <button type="button" class="btn btn-primary btn-sm flex-fixed" onclick="JUNPIA.createPreset()">
+            <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            追加
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="presetEditorCard" class="card" style="display:none">
+      <div class="card-title" id="editPresetTitle">プリセット編集</div>
+      <ul id="taskList"></ul>
+      <div class="field mt-8 mb-0">
+        <div class="row">
+          <input type="text" id="newTaskNameInput" class="flex-name" placeholder="タスク名">
+          <span class="inline-time">
+            <input type="number" id="newTaskMinInput" min="0" step="1" value="5">
+            <span class="tmini-unit">分</span>
+            <input type="number" id="newTaskSecInput" min="0" max="59" step="5" value="0">
+            <span class="tmini-unit">秒</span>
+          </span>
+          <button type="button" class="btn btn-light btn-sm flex-fixed" onclick="JUNPIA.addPresetTask()">
+            <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            追加
+          </button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="text-sm text-mute" style="margin-bottom:10px">各タスクの目安時間は、計測結果に応じて自動で更新されます。</div>
+      <button type="button" class="btn btn-danger btn-sm" onclick="JUNPIA.deletePreset()">このプリセットを削除</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="screen-settings">
+    <div class="card">
+      <div class="card-title">設定</div>
+      <div class="setting-row">
+        <div>
+          <div class="s-label">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.1-1.6-5.6-4.5-6.3V4c0-.8-.7-1.5-1.5-1.5S10.5 3.2 10.5 4v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+            通知
+          </div>
+          <div class="s-desc">タスク開始時と残り1分でお知らせ</div>
+        </div>
+        <div class="s-control">
+          <button type="button" class="btn btn-sm" id="notifBtn" onclick="JUNPIA.enableNotif()">有効にする</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="s-label">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            データ初期化
+          </div>
+          <div class="s-desc">履歴・プリセットをすべて削除</div>
+        </div>
+        <div class="s-control">
+          <button type="button" class="btn btn-danger btn-sm" onclick="JUNPIA.clearAllData()">初期化</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H5V8h14v13z"/></svg>
+        履歴
+      </div>
+      <div id="historyList"><div class="empty">履歴はありません</div></div>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav" id="bottomNav">
+  <button type="button" class="nav-item active" data-scr="home" onclick="JUNPIA.switchScreen('home')">
+    <span class="nav-ico"><svg class="ico-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span>
+    <span>ホーム</span>
+  </button>
+  <button type="button" class="nav-item" data-scr="presets" onclick="JUNPIA.switchScreen('presets')">
+    <span class="nav-ico"><svg class="ico-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg></span>
+    <span>プリセット</span>
+  </button>
+  <button type="button" class="nav-item" data-scr="settings" onclick="JUNPIA.switchScreen('settings')">
+    <span class="nav-ico"><svg class="ico-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.1 13c0-.3.1-.7.1-1s0-.7-.1-1l2.1-1.6c.2-.2.3-.5.1-.8l-2-3.5c-.2-.3-.5-.4-.8-.2l-2.5 1c-.5-.4-1.1-.7-1.7-.9L14 2c0-.3-.3-.6-.6-.6h-4c-.3 0-.6.3-.6.6l-.3 2.5c-.6.2-1.2.5-1.7.9l-2.5-1c-.3-.1-.6 0-.8.2l-2 3.5c-.2.3-.1.6.1.8L3.8 11c-.1.3-.1.7-.1 1s0 .7.1 1L1.7 13.6c-.2.2-.3.5-.1.8l2 3.5c.2.3.5.4.8.2l2.5-1c.5.4 1.1.7 1.7.9l.3 2.5c0 .3.3.6.6.6h4c.3 0 .6-.3.6-.6l.3-2.5c.6-.2 1.2-.5 1.7-.9l2.5 1c.3.1.6 0 .8-.2l2-3.5c.2-.3.1-.6-.1-.8L19.1 13zM12 15.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5z"/></svg></span>
+    <span>設定</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+const KEY = 'junpia_v8';
+const CIRC = 2 * Math.PI * 88;
+
+const DEFAULT_PRESETS = [
+  {
+    id: 'preset_1',
+    name: 'プリセット1',
+    tasks: [
+      { id: 't_brush',  name: '歯磨き',     avgSec: 180 },
+      { id: 't_wash',   name: '洗顔',       avgSec: 120 },
+      { id: 't_change', name: '着替え',     avgSec: 300 },
+      { id: 't_eat',    name: '朝食',       avgSec: 900 },
+      { id: 't_check',  name: '持ち物確認', avgSec: 120 },
+    ],
+  }
+];
+
+const ICON_PLAY  = '<svg class="ico ico-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_PAUSE = '<svg class="ico ico-lg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
+const ICON_DEL   = '<svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg>';
+const ICON_EDIT  = '<svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25zM20.7 7.04c.4-.4.4-1 0-1.4l-2.3-2.3c-.4-.4-1-.4-1.4 0l-1.8 1.8 3.75 3.75 1.8-1.8z"/></svg>';
+
+const TRAVEL_MODES = ['徒歩','自転車','バス','電車','車','その他'];
+
+let state = {
+  mode: 2,
+  presets: [],
+  activePresetId: null,
+  records: {},
+  history: [],
+  session: null,
+  editingPresetId: null,
+  adhocTasks: [],
+  travelLegs: [],
+};
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify({
+    presets: state.presets,
+    activePresetId: state.activePresetId,
+    records: state.records,
+    history: state.history,
+    mode: state.mode,
+  })); } catch(e){}
+}
+
+function migrateFromOld() {
+  for (const oldKey of ['junpia_v7','junpia_v6']) {
+    try {
+      const raw = localStorage.getItem(oldKey);
+      if (!raw) continue;
+      const d = JSON.parse(raw);
+      state.presets = d.presets && d.presets.length ? d.presets : JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+      state.presets.forEach(p => { if (p.name === '基本パターン') p.name = 'プリセット1'; });
+      state.activePresetId = d.activePresetId || state.presets[0].id;
+      state.records = d.records || {};
+      state.history = d.history || [];
+      state.mode = (d.mode === 1 || d.mode === 2) ? d.mode : 2;
+      return true;
+    } catch(e){}
+  }
+  return false;
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      state.presets = d.presets && d.presets.length ? d.presets : JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+      state.activePresetId = d.activePresetId || state.presets[0].id;
+      state.records = d.records || {};
+      state.history = d.history || [];
+      state.mode = (d.mode === 1 || d.mode === 2) ? d.mode : 2;
+    } else {
+      if (!migrateFromOld()) {
+        state.presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+        state.activePresetId = state.presets[0].id;
+      }
+    }
+  } catch(e) {
+    state.presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+    state.activePresetId = state.presets[0].id;
+  }
+  if (state.presets[0] && !state.editingPresetId) state.editingPresetId = state.presets[0].id;
+  state.adhocTasks = [];
+  state.travelLegs = [];
+}
+
+function uid(p='id') { return p+'_'+Math.random().toString(36).slice(2,9); }
+const $ = id => document.getElementById(id);
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+let toastTimer;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2000);
+}
+
+function fmtHMS(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  if (h > 0) return h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function fmtHM(totalSec) {
+  const h = Math.floor(totalSec/3600), m = Math.floor((totalSec%3600)/60);
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+function fmtMS(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec/60), s = sec%60;
+  if (s === 0) return m+'分';
+  return m+'分'+s+'秒';
+}
+function ymd(d) { const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function p2(n){return String(n).padStart(2,'0');}
+function getAvgSec(taskId, fallback=300) {
+  const a = state.records[taskId];
+  if (!a||!a.length) return fallback;
+  return Math.round(a.reduce((x,y)=>x+y,0)/a.length);
+}
+function nowDate() { const d=new Date(); d.setMilliseconds(0); return d; }
+function fmtTimeFromSec(sec) {
+  sec = ((sec%86400)+86400)%86400;
+  return p2(Math.floor(sec/3600))+':'+p2(Math.floor((sec%3600)/60));
+}
+
+function updateNotifBtn() {
+  const btn = $('notifBtn');
+  if (!('Notification' in window)) { btn.textContent='非対応'; btn.disabled=true; btn.className='btn btn-sm btn-light'; return; }
+  const p = Notification.permission;
+  if (p==='granted') { btn.textContent='有効'; btn.disabled=true; btn.className='btn btn-sm btn-light'; }
+  else if (p==='denied') { btn.textContent='ブロック中'; btn.disabled=true; btn.className='btn btn-sm btn-light'; }
+  else { btn.textContent='有効にする'; btn.disabled=false; btn.className='btn btn-sm btn-primary'; }
+}
+function enableNotif() {
+  if (!('Notification' in window)) return;
+  Notification.requestPermission().then(p => {
+    updateNotifBtn();
+    if (p==='granted') toast('通知を有効にしました');
+  });
+}
+function notify(title, body) {
+  if (!('Notification' in window) || Notification.permission!=='granted') return;
+  try { new Notification(title, {body}); } catch(e){}
+}
+
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('screen-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.scr===name));
+  window.scrollTo({top:0});
+  if (name==='presets') renderPresets();
+  if (name==='settings') renderSettings();
+  if (name==='home') renderHome();
+}
+
+function setMode(m) {
+  state.mode = m;
+  save();
+  renderModeFields();
+}
+
+function travelTotalMin() {
+  return state.travelLegs.reduce((a,l)=>a+(parseInt(l.min)||0),0);
+}
+function travelTotalSec() { return travelTotalMin()*60; }
+
+function renderModeFields() {
+  $('mode1Btn').classList.toggle('active', state.mode===1);
+  $('mode2Btn').classList.toggle('active', state.mode===2);
+
+  const n = nowDate();
+  const today = ymd(n);
+  const nowTime = p2(n.getHours())+':'+p2(n.getMinutes());
+
+  let html = '';
+  if (state.mode === 1) {
+    html += `
+      <div class="field-row">
+        <div class="field">
+          <label>到着予定 日付</label>
+          <input type="date" id="arrivalDate" value="${today}" min="${today}">
+        </div>
+        <div class="field">
+          <label>到着予定 時刻</label>
+          <input type="time" id="arrivalTime" value="${nowTime}">
+        </div>
+      </div>`;
+  } else {
+    html += `
+      <div class="field-row">
+        <div class="field">
+          <label>準備開始 日付</label>
+          <input type="date" id="startDate" value="${today}">
+        </div>
+        <div class="field">
+          <label>準備開始 時刻</label>
+          <input type="time" id="startTime" value="${nowTime}">
+        </div>
+      </div>`;
+  }
+
+  html += `
+      <div class="field">
+        <label>プリセット（選択するとタスクが追加されます）</label>
+        <div class="chips" id="presetChips"></div>
+      </div>
+      <div class="section-label">追加タスク</div>
+      <div id="adhocList"></div>
+      <div class="field mt-8 mb-0">
+        <div class="row">
+          <input type="text" id="newAdhocName" class="flex-name" placeholder="タスク名（例：髪をセット）">
+          <span class="inline-time">
+            <input type="number" id="newAdhocMin" min="0" step="1" value="5">
+            <span class="tmini-unit">分</span>
+            <input type="number" id="newAdhocSec" min="0" max="59" step="5" value="0">
+            <span class="tmini-unit">秒</span>
+          </span>
+          <button type="button" class="btn btn-light btn-sm flex-fixed" onclick="JUNPIA.addAdhocTask()">
+            <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            追加
+          </button>
+        </div>
+      </div>
+      <div class="section-label">移動時間</div>
+      <div id="travelList"></div>
+      <div class="field mt-8 mb-0">
+        <div class="row">
+          <select id="newTravelMode" class="flex-fixed" style="max-width:100px">
+            ${TRAVEL_MODES.map(m=>`<option value="${m}">${m}</option>`).join('')}
+          </select>
+          <span class="inline-time">
+            <input type="number" id="newTravelMin" min="1" step="1" value="10">
+            <span class="tmini-unit">分</span>
+          </span>
+          <button type="button" class="btn btn-light btn-sm flex-fixed" onclick="JUNPIA.addTravelLeg()">
+            <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            追加
+          </button>
+        </div>
+      </div>
+      <div class="travel-total" id="travelTotal"></div>
+      <div style="margin-top:16px">
+        <button type="button" class="btn btn-light" onclick="JUNPIA.doCalc(false)">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+          ${state.mode === 1 ? '準備開始時刻を計算' : '到着時刻を予測'}
+        </button>
+      </div>
+      <div id="calcResult" class="calc-result" style="display:none">
+        <div class="cr-label" id="crLabel">—</div>
+        <div class="cr-time" id="crTime">—</div>
+        <div class="cr-sub" id="crSub">—</div>
+        <div style="margin-top:14px">
+          <button type="button" class="btn btn-primary" onclick="JUNPIA.startSession()">
+            <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <span id="startBtnText">準備を開始</span>
+          </button>
+        </div>
+        <div class="cr-reverse" id="crReverse"></div>
+      </div>`;
+
+  $('modeFields').innerHTML = html;
+
+  const chipsEl = $('presetChips');
+  if (!state.presets.length) {
+    chipsEl.innerHTML = '<span class="text-sm text-mute">プリセットがありません。追加タスクだけでも計算できます。</span>';
+  } else {
+    chipsEl.innerHTML = state.presets.map(p =>
+      `<button type="button" class="chip ${p.id===state.activePresetId?'active':''}" data-pid="${p.id}" onclick="JUNPIA.togglePreset('${p.id}')">${esc(p.name)}</button>`
+    ).join('');
+  }
+
+  renderAdhocList();
+  renderTravelList();
+
+  // Enter-key bindings
+  ['newAdhocName','newAdhocMin','newAdhocSec'].forEach(id=>{
+    const el = $(id); if (el) el.addEventListener('keydown', e=>{ if(e.key==='Enter') addAdhocTask(); });
+  });
+}
+
+function togglePreset(pid) {
+  if (state.activePresetId === pid) state.activePresetId = null;
+  else state.activePresetId = pid;
+  save();
+  // re-render chips active state without resetting other inputs
+  document.querySelectorAll('#presetChips .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.pid === state.activePresetId);
+  });
+  updateCalcResultHidden();
+}
+
+function renderAdhocList() {
+  const el = $('adhocList');
+  if (!state.adhocTasks.length) {
+    el.innerHTML = '<div class="hint" style="margin-bottom:8px">プリセットに追加したいタスクを入力してください（任意）</div>';
+    return;
+  }
+  el.innerHTML = state.adhocTasks.map(t=>{
+    const m = Math.floor(t.sec/60), s = t.sec%60;
+    return `
+    <div class="adhoc-task" data-aid="${t.id}">
+      <input type="text" class="at-name" value="${esc(t.name)}" data-aname="${t.id}" onchange="JUNPIA.updateAdhocName('${t.id}', this.value)">
+      <input type="number" class="at-mini" min="0" step="1" value="${m}" data-amin="${t.id}" onchange="JUNPIA.updateAdhocTime('${t.id}', this.value, 'm')">
+      <span class="at-unit">分</span>
+      <input type="number" class="at-mini" min="0" max="59" step="5" value="${s}" data-asec="${t.id}" onchange="JUNPIA.updateAdhocTime('${t.id}', this.value, 's')">
+      <span class="at-unit">秒</span>
+      <button type="button" class="icon-btn" onclick="JUNPIA.removeAdhoc('${t.id}')">${ICON_DEL}</button>
+    </div>`;
+  }).join('');
+}
+
+function updateAdhocName(id, val) {
+  const t = state.adhocTasks.find(x=>x.id===id);
+  if (t) { t.name = (val||'').trim() || t.name; save(); updateCalcResultHidden(); }
+}
+function updateAdhocTime(id, val, unit) {
+  const t = state.adhocTasks.find(x=>x.id===id);
+  if (!t) return;
+  // read both inputs
+  const row = document.querySelector(`[data-aid="${id}"]`);
+  const m = Math.max(0, parseInt(row.querySelector('[data-amin]').value)||0);
+  const s = Math.max(0, Math.min(59, parseInt(row.querySelector('[data-asec]').value)||0));
+  t.sec = Math.max(0, m*60+s);
+  updateCalcResultHidden();
+}
+function removeAdhoc(id) {
+  state.adhocTasks = state.adhocTasks.filter(x=>x.id!==id);
+  renderAdhocList();
+  updateCalcResultHidden();
+}
+function addAdhocTask() {
+  const ni = $('newAdhocName');
+  const mi = $('newAdhocMin');
+  const si = $('newAdhocSec');
+  const name = (ni.value||'').trim();
+  const min = Math.max(0, parseInt(mi.value)||0);
+  const sec = Math.max(0, Math.min(59, parseInt(si.value)||0));
+  if (!name) { toast('タスク名を入力してください'); ni.focus(); return; }
+  if (min===0 && sec===0) { toast('時間を入力してください'); mi.focus(); return; }
+  state.adhocTasks.push({id:uid('a'), name, sec: min*60+sec});
+  ni.value=''; mi.value='5'; si.value='0';
+  renderAdhocList();
+  updateCalcResultHidden();
+  ni.focus();
+}
+
+function renderTravelList() {
+  const el = $('travelList');
+  if (!state.travelLegs.length) {
+    el.innerHTML = '<div class="hint" style="margin-bottom:8px">移動手段がない場合は追加不要です</div>';
+    $('travelTotal').textContent = '';
+    return;
+  }
+  el.innerHTML = state.travelLegs.map(l=>`
+    <div class="travel-leg" data-lid="${l.id}">
+      <select class="tname" onchange="JUNPIA.updateTravelMode('${l.id}', this.value)" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:6px;background:white;font-size:14px;font-weight:600;-webkit-appearance:none;appearance:none;">
+        ${TRAVEL_MODES.map(m=>`<option value="${m}" ${m===l.mode?'selected':''}>${m}</option>`).join('')}
+      </select>
+      <input type="number" class="tmini" min="0" step="1" value="${l.min}" onchange="JUNPIA.updateTravelMin('${l.id}', this.value)">
+      <span class="tmini-unit">分</span>
+      <button type="button" class="icon-btn" onclick="JUNPIA.removeTravel('${l.id}')">${ICON_DEL}</button>
+    </div>
+  `).join('');
+  const tot = travelTotalMin();
+  $('travelTotal').textContent = tot > 0 ? '合計移動時間: '+tot+'分' : '';
+}
+function updateTravelMode(id, val) {
+  const l = state.travelLegs.find(x=>x.id===id); if (l) l.mode = val;
+}
+function updateTravelMin(id, val) {
+  const l = state.travelLegs.find(x=>x.id===id);
+  if (l) { l.min = Math.max(0, parseInt(val)||0); renderTravelList(); updateCalcResultHidden(); }
+}
+function removeTravel(id) {
+  state.travelLegs = state.travelLegs.filter(x=>x.id!==id);
+  renderTravelList();
+  updateCalcResultHidden();
+}
+function addTravelLeg() {
+  const ms = $('newTravelMode'); const mi = $('newTravelMin');
+  const mode = ms.value; const min = parseInt(mi.value)||0;
+  if (min <= 0) { toast('時間を入力してください'); mi.focus(); return; }
+  state.travelLegs.push({id:uid('leg'), mode, min});
+  mi.value = '10';
+  renderTravelList();
+  updateCalcResultHidden();
+}
+
+function updateCalcResultHidden() {
+  const cr = $('calcResult');
+  if (cr && cr.style.display !== 'none') doCalc(true);
+}
+
+function getDateTimeFromInputs(dateId, timeId) {
+  const ds = $(dateId).value;
+  const ts = $(timeId).value;
+  if (!ds || !ts) return null;
+  const [y,m,d] = ds.split('-').map(Number);
+  const [hh,mm] = ts.split(':').map(Number);
+  return new Date(y, m-1, d, hh, mm, 0, 0);
+}
+function setInputs(dateId, timeId, date) {
+  const d = date instanceof Date ? date : new Date(date);
+  $(dateId).value = ymd(d);
+  $(timeId).value = p2(d.getHours())+':'+p2(d.getMinutes());
+}
+
+function collectEffectiveTasks() {
+  const tasks = [];
+  if (state.activePresetId) {
+    const preset = state.presets.find(p=>p.id===state.activePresetId);
+    if (preset) preset.tasks.forEach(t => tasks.push({id:t.id, name:t.name, avgSec: getAvgSec(t.id, t.avgSec||300), fromPreset:true}));
+  }
+  state.adhocTasks.forEach(t => tasks.push({id:t.id, name:t.name, avgSec:t.sec, fromPreset:false}));
+  return tasks;
+}
+
+function reverseCalcFromPredicted() {
+  // Fill arrival date/time with the predicted arrival and switch to mode 1
+  const cr = $('calcResult');
+  const iso = cr.dataset.arrISO;
+  if (!iso) { toast('まず到着時刻を予測してください'); return; }
+  const arr = new Date(iso);
+  state.mode = 1;
+  save();
+  renderModeFields();
+  // After renderModeFields, arrival date/time inputs now exist
+  setInputs('arrivalDate','arrivalTime', arr);
+  doCalc(false);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function doCalc(silent) {
+  const tasks = collectEffectiveTasks();
+  if (!tasks.length) {
+    if (!silent) toast('プリセットを選ぶかタスクを追加してください');
+    return;
+  }
+  const travelSec = travelTotalSec();
+  const prepSec = tasks.reduce((s,t)=>s+t.avgSec,0);
+  const totalSec = prepSec + travelSec;
+  const travelMin = travelTotalMin();
+
+  const cr = $('calcResult');
+  cr.style.display = '';
+
+  let reverseBtnHtml = '';
+
+  if (state.mode === 1) {
+    const arrDate = getDateTimeFromInputs('arrivalDate','arrivalTime');
+    if (!arrDate) { if(!silent) toast('日付と時刻を入力してください'); return; }
+    if (!silent && arrDate.getTime() <= Date.now()) { toast('到着予定時刻は現在時刻より後に設定してください'); return; }
+    const arrSec = arrDate.getHours()*3600 + arrDate.getMinutes()*60;
+    let startSec = arrSec - totalSec;
+    if (startSec < 0) startSec += 86400;
+    const isPrevDay = (arrSec - totalSec) < 0;
+    $('crLabel').textContent = '準備を開始する時刻';
+    $('crTime').textContent = (isPrevDay?'前日 ':'') + fmtTimeFromSec(startSec);
+    $('crSub').textContent = '準備'+Math.round(prepSec/60)+'分' + (travelMin>0?' + 移動'+travelMin+'分':'') + ' = 合計'+Math.round(totalSec/60)+'分';
+    $('startBtnText').textContent = 'この時刻から準備を開始';
+    cr.dataset.arrISO = arrDate.toISOString();
+    cr.dataset.totalSec = String(totalSec);
+    cr.dataset.kind = 'mode1';
+  } else {
+    const stDate = getDateTimeFromInputs('startDate','startTime');
+    if (!stDate) { if(!silent) toast('日付と時刻を入力してください'); return; }
+    const stSec = stDate.getHours()*3600 + stDate.getMinutes()*60;
+    // Compute arrival correctly by adding totalSec as ms
+    const arrDate = new Date(stDate.getTime() + totalSec*1000);
+    const arrSec = arrDate.getHours()*3600 + arrDate.getMinutes()*60;
+    const nextDay = (arrDate.getDate() !== stDate.getDate()) || (arrDate.getMonth() !== stDate.getMonth());
+    $('crLabel').textContent = '到着予定時刻';
+    $('crTime').textContent = (nextDay?'翌日 ':'') + fmtTimeFromSec(arrSec);
+    $('crSub').textContent = '準備'+Math.round(prepSec/60)+'分' + (travelMin>0?' + 移動'+travelMin+'分':'') + ' = 合計'+Math.round(totalSec/60)+'分';
+    $('startBtnText').textContent = '準備を開始';
+    cr.dataset.startISO = stDate.toISOString();
+    cr.dataset.arrISO = arrDate.toISOString();
+    cr.dataset.totalSec = String(totalSec);
+    cr.dataset.kind = 'mode2';
+    reverseBtnHtml = `<div class="cr-reverse" style="margin-top:10px">
+      <button type="button" class="btn btn-outline btn-sm" onclick="JUNPIA.reverseCalcFromPredicted()">
+        <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></svg>
+        この到着時刻で逆算する
+      </button>
+    </div>`;
+  }
+  $('crReverse').innerHTML = reverseBtnHtml;
+}
+
+function renderHome() {
+  const setup = $('homeSetup'), active = $('homeActive'), done = $('homeDone');
+  if (state.session) {
+    setup.style.display='none'; done.style.display='none'; active.style.display='';
+    if (!state.session.timer) startTicker();
+    renderActive();
+  } else {
+    active.style.display='none'; done.style.display='none'; setup.style.display='';
+    if (!$('modeFields').innerHTML) renderModeFields();
+    const hasAny = state.presets.length>0 || state.adhocTasks.length>0;
+    $('homeEmptyHint').style.display = hasAny ? 'none' : '';
+  }
+}
+
+function startSession() {
+  const tasks = collectEffectiveTasks();
+  if (!tasks.length) { toast('プリセットを選ぶかタスクを追加してください'); return; }
+  const travelSec = travelTotalSec();
+  const totalSec = tasks.reduce((s,t)=>s+t.avgSec,0) + travelSec;
+
+  let depDate, sessionStartSecOfDay;
+
+  if (state.mode === 1) {
+    const arrDate = getDateTimeFromInputs('arrivalDate','arrivalTime');
+    if (!arrDate) { toast('日付と時刻を設定してください'); return; }
+    if (arrDate.getTime() <= Date.now()) { toast('到着予定時刻は現在時刻より後に設定してください'); return; }
+    const arrSec = arrDate.getHours()*3600 + arrDate.getMinutes()*60;
+    sessionStartSecOfDay = arrSec - totalSec;
+    depDate = new Date(arrDate);
+    if (sessionStartSecOfDay < 0) depDate.setDate(depDate.getDate()-1);
+  } else {
+    const stDate = getDateTimeFromInputs('startDate','startTime');
+    if (!stDate) { toast('日付と時刻を設定してください'); return; }
+    sessionStartSecOfDay = stDate.getHours()*3600 + stDate.getMinutes()*60;
+    depDate = new Date(stDate);
+    if (sessionStartSecOfDay + totalSec >= 86400) depDate.setDate(depDate.getDate()+1);
+  }
+
+  const sched = [];
+  let cur = sessionStartSecOfDay;
+  tasks.forEach(t => {
+    sched.push({ kind:'task', id:t.id, name:t.name, plannedSec:t.avgSec,
+                 startSec:((cur%86400)+86400)%86400, endSec:((cur+t.avgSec)%86400+86400)%86400,
+                 rawStart:cur, rawEnd:cur+t.avgSec, actualSec:null, fromPreset:t.fromPreset });
+    cur += t.avgSec;
+  });
+  if (travelSec > 0) {
+    sched.push({ kind:'travel', id:'travel', name:'移動', plannedSec:travelSec,
+                 startSec:((cur%86400)+86400)%86400, endSec:((cur+travelSec)%86400+86400)%86400,
+                 rawStart:cur, rawEnd:cur+travelSec, actualSec:null });
+  }
+  const firstTaskIdx = Math.max(0, sched.findIndex(x=>x.kind==='task'));
+
+  state.session = {
+    presetId: state.activePresetId,
+    presetName: state.activePresetId ? (state.presets.find(p=>p.id===state.activePresetId)?.name || 'カスタム') : 'カスタム',
+    depDateISO: depDate.toISOString(),
+    sessionStartSec: sessionStartSecOfDay,
+    sched, idx: firstTaskIdx,
+    running: true,
+    taskStartTs: Date.now(),
+    taskElapsedMs: 0,
+    notified: {},
+    timer: null,
+  };
+  save();
+  renderHome();
+  toast('準備を開始します');
+}
+
+let tickTimer = null;
+function startTicker() {
+  if (tickTimer) clearInterval(tickTimer);
+  tickTimer = setInterval(tick, 200);
+  state.session.timer = true;
+}
+function stopTicker() {
+  if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+  if (state.session) state.session.timer = null;
+}
+
+function curTaskElapsedSec() {
+  const s = state.session; if (!s) return 0;
+  let e = s.taskElapsedMs/1000;
+  if (s.running && s.taskStartTs) e += (Date.now()-s.taskStartTs)/1000;
+  return e;
+}
+
+function tick() {
+  const s = state.session; if (!s) { stopTicker(); return; }
+  renderActive();
+  const cur = s.sched[s.idx]; if (!cur) return;
+  if (cur.kind==='task' && s.running && !s.notified['s'+cur.id]) {
+    if (curTaskElapsedSec() >= 0) {
+      s.notified['s'+cur.id] = true;
+      notify(cur.name, 'このタスクを始めてください（目安'+Math.round(cur.plannedSec/60)+'分）');
+    }
+  }
+  if (cur.kind==='task' && s.running && !s.notified['m'+cur.id]) {
+    const remain = cur.plannedSec - curTaskElapsedSec();
+    if (remain <= 60 && remain > 0) {
+      s.notified['m'+cur.id] = true;
+      notify('あと1分', cur.name+' の残りがあと1分です');
+    }
+  }
+}
+
+function renderActive() {
+  const s = state.session; if (!s) return;
+  const cur = s.sched[s.idx];
+  const hero = $('timerHero');
+
+  if (!cur) {
+    hero.classList.remove('travel-mode');
+    $('tCircleWrap').style.display='';
+    $('tLabel').textContent='完了'; $('tTask').textContent='全タスク終了';
+    $('tTime').textContent='00:00'; $('tMeta').textContent='準備完了です';
+    $('tCircle').setAttribute('stroke-dashoffset','0');
+    $('stwBtn').style.display='none';
+    $('skipBtn').style.display='none';
+    $('completeBtn').style.display='none';
+    renderSchedList();
+    return;
+  }
+
+  if (cur.kind === 'travel') {
+    hero.classList.add('travel-mode');
+    $('tCircleWrap').style.display='none';
+    $('stwBtn').style.display='none';
+    $('skipBtn').style.display='none';
+    $('completeBtn').style.display='';
+    $('completeBtn').innerHTML = '<svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg> 到着';
+    $('tLabel').textContent = '移動中';
+    $('tTask').textContent = '移動';
+    $('tTime').textContent = '';
+    const dep = new Date(s.depDateISO);
+    $('tMeta').textContent = '到着予定 '+p2(dep.getHours())+':'+p2(dep.getMinutes());
+    renderSchedList();
+    return;
+  }
+
+  hero.classList.remove('travel-mode');
+  $('tCircleWrap').style.display='';
+  $('stwBtn').style.display='';
+  $('skipBtn').style.display='';
+  $('completeBtn').style.display='';
+  $('completeBtn').innerHTML = '<svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg> 完了';
+
+  const el = curTaskElapsedSec();
+  const remain = cur.plannedSec - el;
+  const prog = Math.min(1, Math.max(0, el/cur.plannedSec));
+  $('tCircle').setAttribute('stroke-dashoffset', CIRC*(1-prog));
+  $('tLabel').textContent = s.running ? '計測中' : (el>0?'一時停止中':'開始待ち');
+  $('tTask').textContent = cur.name;
+  $('tTime').textContent = fmtHMS(Math.max(0, remain));
+  const dep = new Date(s.depDateISO);
+  $('tMeta').textContent = '目安'+fmtMS(cur.plannedSec)+' / 到着 '+p2(dep.getHours())+':'+p2(dep.getMinutes());
+  $('stwBtn').classList.toggle('running', s.running);
+  $('stwIco').innerHTML = s.running ? ICON_PAUSE : ICON_PLAY;
+  $('stwText').textContent = s.running ? '一時停止' : (el>0?'再開':'開始');
+  renderSchedList();
+}
+
+function renderSchedList() {
+  const s = state.session; if (!s) return;
+  $('schedList').innerHTML = s.sched.map((t,i) => {
+    let cls = '';
+    if (i < s.idx) cls = 'done';
+    else if (i === s.idx) cls = 'current';
+    if (t.kind === 'travel') cls += ' travel';
+    const act = t.actualSec!=null && t.actualSec>0 ? `<span class="sched-actual">実績${Math.round(t.actualSec/60)}分</span>` : '';
+    const tag = t.kind==='travel' ? '<span class="sched-tag">移動</span>' : '';
+    return `<li class="sched-item ${cls}">
+      <span class="sched-dot"></span>
+      <span class="sched-time">${fmtHM(t.startSec)}</span>
+      <span class="sched-name">${esc(t.name)}${tag}${act}</span>
+      <span class="sched-dur">${Math.round(t.plannedSec/60)}分</span>
+    </li>`;
+  }).join('');
+}
+
+function toggleTaskTimer() {
+  const s = state.session; if (!s) return;
+  const cur = s.sched[s.idx]; if (!cur || cur.kind!=='task') return;
+  if (s.running) {
+    s.taskElapsedMs += Date.now() - s.taskStartTs;
+    s.running = false; s.taskStartTs = null;
+  } else {
+    s.running = true; s.taskStartTs = Date.now();
+  }
+  renderActive();
+}
+
+function completeTask() {
+  const s = state.session; if (!s) return;
+  const cur = s.sched[s.idx]; if (!cur) return;
+  if (cur.kind === 'travel') {
+    cur.actualSec = cur.plannedSec;
+    s.idx++;
+    save();
+    finalize(true);
+    return;
+  }
+  let sec = s.taskElapsedMs/1000;
+  if (s.running && s.taskStartTs) sec += (Date.now()-s.taskStartTs)/1000;
+  cur.actualSec = Math.max(1, Math.round(sec));
+  if (cur.fromPreset) {
+    if (!state.records[cur.id]) state.records[cur.id] = [];
+    state.records[cur.id].push(cur.actualSec);
+    if (state.records[cur.id].length > 30) state.records[cur.id].shift();
+    const p = state.presets.find(x=>x.id===s.presetId);
+    if (p) { const pt = p.tasks.find(t=>t.id===cur.id); if (pt) pt.avgSec = getAvgSec(cur.id, pt.avgSec); }
+  }
+  s.idx++;
+  s.running = true; s.taskStartTs = Date.now(); s.taskElapsedMs = 0; s.notified = {};
+  save();
+  if (s.idx >= s.sched.length) finalize(true);
+  else {
+    const nxt = s.sched[s.idx];
+    if (nxt.kind==='task') toast(nxt.name+' を開始');
+    else toast('移動時間です');
+    renderActive();
+  }
+}
+
+function skipTask() {
+  const s = state.session; if (!s) return;
+  const cur = s.sched[s.idx]; if (!cur || cur.kind!=='task') return;
+  cur.actualSec = 0;
+  s.idx++;
+  s.running = true; s.taskStartTs = Date.now(); s.taskElapsedMs = 0; s.notified = {};
+  save();
+  if (s.idx >= s.sched.length) finalize(false);
+  else {
+    const nxt = s.sched[s.idx];
+    if (nxt.kind==='task') toast(nxt.name+' を開始');
+    else toast('移動時間です');
+    renderActive();
+  }
+}
+
+function handleEndBtn() {
+  if (!state.session) { toast('セッションがありません'); return; }
+  if (!window.confirm('準備を終了してホームに戻りますか？')) return;
+  finalizeToHome();
+}
+
+function finalizeToHome() {
+  const s = state.session; if (!s) return;
+  stopTicker();
+  const dep = new Date(s.depDateISO);
+  const totalActual = s.sched.reduce((a,t)=>a+(t.actualSec||0),0);
+  const totalPlanned = s.sched.reduce((a,t)=>a+t.plannedSec,0);
+  state.history.push({
+    date: ymd(dep),
+    depIso: s.depDateISO,
+    presetId: s.presetId,
+    presetName: s.presetName,
+    travelSec: s.sched.find(x=>x.kind==='travel')?.plannedSec || 0,
+    completed: false, totalPlanned, totalActual,
+    items: s.sched.map(t=>({kind:t.kind,taskId:t.id,name:t.name,plannedSec:t.plannedSec,actualSec:t.actualSec})),
+    endedAt: Date.now(),
+  });
+  state.session = null;
+  save();
+  $('homeSetup').style.display='';
+  $('homeActive').style.display='none';
+  $('homeDone').style.display='none';
+  renderModeFields();
+  renderHome();
+  window.scrollTo({top:0});
+  toast('ホームに戻りました');
+}
+
+function finalize(completed) {
+  const s = state.session; if (!s) return;
+  stopTicker();
+  if (s.running && s.taskStartTs && s.idx < s.sched.length) {
+    const cur = s.sched[s.idx];
+    if (cur.kind === 'task') {
+      let sec = s.taskElapsedMs/1000 + (Date.now()-s.taskStartTs)/1000;
+      cur.actualSec = Math.max(1, Math.round(sec));
+      if (cur.fromPreset) {
+        if (!state.records[cur.id]) state.records[cur.id] = [];
+        state.records[cur.id].push(cur.actualSec);
+        if (state.records[cur.id].length > 30) state.records[cur.id].shift();
+        const p = state.presets.find(x=>x.id===s.presetId);
+        if (p) { const pt = p.tasks.find(t=>t.id===cur.id); if (pt) pt.avgSec = getAvgSec(cur.id, pt.avgSec); }
+      }
+    } else {
+      cur.actualSec = cur.plannedSec;
+    }
+  }
+  const dep = new Date(s.depDateISO);
+  const totalActual = s.sched.reduce((a,t)=>a+(t.actualSec||0),0);
+  const totalPlanned = s.sched.reduce((a,t)=>a+t.plannedSec,0);
+  state.history.push({
+    date: ymd(dep),
+    depIso: s.depDateISO,
+    presetId: s.presetId,
+    presetName: s.presetName,
+    travelSec: s.sched.find(x=>x.kind==='travel')?.plannedSec || 0,
+    completed, totalPlanned, totalActual,
+    items: s.sched.map(t=>({kind:t.kind,taskId:t.id,name:t.name,plannedSec:t.plannedSec,actualSec:t.actualSec})),
+    endedAt: Date.now(),
+  });
+  state.session = null;
+  save();
+  $('homeSetup').style.display='none';
+  $('homeActive').style.display='none';
+  $('homeDone').style.display='';
+  const diff = totalActual - totalPlanned;
+  const txt = completed
+    ? (diff<=0 ? '予定通り到着しました' : '予定より'+Math.round(diff/60)+'分長引きました')
+    : '途中で終了しました';
+  $('doneSummary').textContent = '合計'+Math.round(totalActual/60)+'分 / '+txt;
+  const last = state.history[state.history.length-1];
+  $('doneSchedList').innerHTML = last.items.map(t => {
+    const tag = t.kind==='travel'?'<span class="sched-tag">移動</span>':'';
+    return `<li class="sched-item done">
+      <span class="sched-dot"></span>
+      <span class="sched-name">${esc(t.name)}${tag}</span>
+      <span class="sched-dur">予定${Math.round(t.plannedSec/60)}分</span>
+      <span class="sched-actual">${t.actualSec?Math.round(t.actualSec/60)+'分':'−'}</span>
+    </li>`;
+  }).join('');
+  window.scrollTo({top:0});
+}
+
+function resetHome() {
+  $('homeDone').style.display='none';
+  $('homeSetup').style.display='';
+  $('homeActive').style.display='none';
+  renderHome();
+}
+
+// ---------- PRESETS ----------
+function setPresetActive(id) {
+  state.activePresetId = id;
+  state.editingPresetId = id;
+  save();
+  renderPresets();
+}
+function editPreset(id) {
+  state.editingPresetId = id;
+  renderPresets();
+}
+function confirmDelPreset(id) {
+  if (!window.confirm('このプリセットを削除しますか？')) return;
+  delPreset(id);
+}
+function confirmDelTask(tid) {
+  const p = state.presets.find(x=>x.id===state.editingPresetId);
+  if (!p) return;
+  if (!window.confirm('このタスクを削除しますか？')) return;
+  p.tasks = p.tasks.filter(x=>x.id!==tid);
+  save(); renderPresets();
+}
+function renderPresets() {
+  const el = $('presetList');
+  if (!state.presets.length) {
+    el.innerHTML = '<div class="empty">プリセットがありません。下の入力欄から追加してください。</div>';
+  } else {
+    const checkSvg = '<svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>';
+    el.innerHTML = state.presets.map(p => `
+      <div class="preset-item ${p.id===state.editingPresetId?'p-editing':''} ${p.id===state.activePresetId?'p-active-yes':''}">
+        <button type="button" class="p-active" onclick="JUNPIA.setPresetActive('${p.id}')" title="使用するプリセットに設定">${p.id===state.activePresetId?checkSvg:''}</button>
+        <input type="text" class="pname" value="${esc(p.name)}" onchange="JUNPIA.renamePreset('${p.id}', this.value)">
+        <span class="pcount">${p.tasks.length}タスク</span>
+        <button type="button" class="icon-btn" onclick="JUNPIA.editPreset('${p.id}')" title="編集">${ICON_EDIT}</button>
+        <button type="button" class="icon-btn btn-del" onclick="JUNPIA.confirmDelPreset('${p.id}')" title="削除">
+          <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        </button>
+      </div>`).join('');
+  }
+  const ed=$('presetEditorCard');
+  const p = state.presets.find(x=>x.id===state.editingPresetId);
+  if (!p) { ed.style.display='none'; return; }
+  ed.style.display='';
+  $('editPresetTitle').textContent = p.name + ' の編集';
+  const tl=$('taskList');
+  tl.innerHTML = p.tasks.map(t=>{
+    const avg = getAvgSec(t.id, t.avgSec||300);
+    const mm = Math.floor(avg/60), ss = avg%60;
+    return `
+    <li class="task-row" data-tid="${t.id}" draggable="true">
+      <span class="handle" title="ドラッグで並び替え"><svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></span>
+      <input type="text" class="tname" value="${esc(t.name)}" onchange="JUNPIA.renameTask('${p.id}','${t.id}', this.value)">
+      <span class="time-group">
+        <input type="number" class="tmini" min="0" step="1" value="${mm}" onchange="JUNPIA.setTaskTime('${p.id}','${t.id}', this)"><span class="tmini-unit">分</span>
+        <input type="number" class="tmini task-sec" min="0" max="59" step="5" value="${ss}" onchange="JUNPIA.setTaskTime('${p.id}','${t.id}', this)"><span class="tmini-unit">秒</span>
+      </span>
+      <button type="button" class="icon-btn btn-del" onclick="JUNPIA.confirmDelTask('${t.id}')" title="削除">
+        <svg class="ico ico-btn" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+      </button>
+    </li>`;
+  }).join('');
+  bindDnD(tl,p);
+}
+function renamePreset(id, val) {
+  const p = state.presets.find(x=>x.id===id);
+  if (p) { p.name = (val||'').trim() || p.name; save(); }
+}
+function renameTask(pid, tid, val) {
+  const p = state.presets.find(x=>x.id===pid); if(!p) return;
+  const t = p.tasks.find(x=>x.id===tid); if(!t) return;
+  t.name = (val||'').trim() || t.name;
+  save();
+}
+function setTaskTime(pid, tid, _el) {
+  const p = state.presets.find(x=>x.id===pid); if(!p) return;
+  const t = p.tasks.find(x=>x.id===tid); if(!t) return;
+  const row = document.querySelector(`[data-tid="${tid}"]`);
+  const m = Math.max(0, parseInt(row.querySelector('.tmini:not(.task-sec)').value)||0);
+  const s = Math.max(0, Math.min(59, parseInt(row.querySelector('.task-sec').value)||0));
+  t.avgSec = Math.max(10, m*60+s);
+  save();
+}
+
+function bindDnD(list,preset) {
+  let dragId=null;
+  list.querySelectorAll('.task-row').forEach(li=>{
+    li.addEventListener('dragstart',()=>{dragId=li.dataset.tid; li.style.opacity='0.4';});
+    li.addEventListener('dragend',()=>{li.style.opacity='1';});
+    li.addEventListener('dragover',e=>e.preventDefault());
+    li.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(!dragId||dragId===li.dataset.tid) return;
+      const from=preset.tasks.findIndex(t=>t.id===dragId);
+      const to=preset.tasks.findIndex(t=>t.id===li.dataset.tid);
+      if(from<0||to<0) return;
+      const [m]=preset.tasks.splice(from,1);
+      preset.tasks.splice(to,0,m);
+      save(); renderPresets();
+    });
+  });
+}
+
+function createPreset() {
+  const inp=$('newPresetInput'); const name=(inp.value||'').trim();
+  if(!name){toast('プリセット名を入力'); inp.focus(); return;}
+  const p={id:uid('p'),name,tasks:[]};
+  state.presets.push(p); state.activePresetId=p.id; state.editingPresetId=p.id;
+  inp.value=''; save(); renderPresets(); toast('プリセットを作成しました');
+}
+function addPresetTask() {
+  const p=state.presets.find(x=>x.id===state.editingPresetId); if(!p) return;
+  const ni=$('newTaskNameInput'); const mi=$('newTaskMinInput'); const si=$('newTaskSecInput');
+  const name=(ni.value||'').trim();
+  const min=Math.max(0,parseInt(mi.value)||0);
+  const sec=Math.max(0,Math.min(59,parseInt(si.value)||0));
+  if(!name){toast('タスク名を入力'); ni.focus(); return;}
+  if(min===0 && sec<10){toast('時間を10秒以上入力してください'); mi.focus(); return;}
+  p.tasks.push({id:uid('t'),name,avgSec:Math.max(10,min*60+sec)});
+  ni.value=''; mi.value='5'; si.value='0';
+  save(); renderPresets(); ni.focus();
+}
+function deletePreset() {
+  if(!state.editingPresetId) return;
+  if(!window.confirm('このプリセットを削除しますか？')) return;
+  delPreset(state.editingPresetId);
+}
+function delPreset(id) {
+  state.presets=state.presets.filter(p=>p.id!==id);
+  if(state.activePresetId===id) state.activePresetId=state.presets[0]?.id||null;
+  if(state.editingPresetId===id) state.editingPresetId=state.presets[0]?.id||null;
+  save(); renderPresets(); toast('削除しました');
+}
+function clearAllData() {
+  if(!window.confirm('すべてのデータを削除しますか？')) return;
+  Object.keys(localStorage).filter(k=>k.startsWith('junpia_')).forEach(k=>localStorage.removeItem(k));
+  if (state.session) stopTicker();
+  state.presets=JSON.parse(JSON.stringify(DEFAULT_PRESETS));
+  state.activePresetId=state.presets[0].id;
+  state.editingPresetId=state.presets[0].id;
+  state.records={}; state.history=[]; state.session=null;
+  state.adhocTasks=[]; state.travelLegs=[];
+  toast('初期化しました');
+  renderPresets(); renderSettings(); renderHome();
+}
+
+function renderSettings() {
+  updateNotifBtn();
+  const hl = $('historyList');
+  if (!state.history.length) {
+    hl.innerHTML = '<div class="empty">履歴はありません</div>';
+    return;
+  }
+  const sorted = state.history.slice().sort((a,b)=>b.endedAt-a.endedAt).slice(0,50);
+  hl.innerHTML = sorted.map(r=>{
+    const dp=new Date(r.depIso);
+    const dateStr = (dp.getMonth()+1)+'/'+dp.getDate();
+    const timeStr = p2(dp.getHours())+':'+p2(dp.getMinutes());
+    return `<div class="hist-item">
+      <div class="h-head"><span>${esc(r.presetName)} · ${dateStr} ${timeStr}</span><span>${Math.round((r.totalActual||0)/60)}分</span></div>
+      <div class="h-sub">${r.completed?'✓ 完了':'− 中断'} · 予定${Math.round(r.totalPlanned/60)}分${r.items.filter(i=>i.kind==='travel').length?(' · 移動'+Math.round((r.travelSec||0)/60)+'分'):''}</div>
+    </div>`;
+  }).join('');
+}
+
+function init() {
+  load();
+  renderModeFields();
+  renderHome();
+  updateNotifBtn();
+  // Enter-key for new preset
+  $('newPresetInput').addEventListener('keydown', e=>{ if(e.key==='Enter') createPreset(); });
+  ['newTaskNameInput','newTaskMinInput','newTaskSecInput'].forEach(id=>{
+    const el = $(id); if (el) el.addEventListener('keydown', e=>{ if(e.key==='Enter') addPresetTask(); });
+  });
+}
+
+// Expose public API as global for inline onclick handlers
+window.JUNPIA = {
+  setMode, switchScreen,
+  togglePreset,
+  addAdhocTask, updateAdhocName, updateAdhocTime, removeAdhoc,
+  addTravelLeg, updateTravelMode, updateTravelMin, removeTravel,
+  doCalc, startSession, reverseCalcFromPredicted,
+  toggleTaskTimer, completeTask, skipTask, handleEndBtn, resetHome,
+  setPresetActive, editPreset, confirmDelPreset, confirmDelTask,
+  renamePreset, renameTask, setTaskTime,
+  createPreset, addPresetTask, deletePreset,
+  enableNotif, clearAllData,
+};
+
+if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1bd44d029829d71',t:'MTc4NDE2NTcxMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
